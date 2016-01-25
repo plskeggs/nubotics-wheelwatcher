@@ -1,0 +1,58 @@
+[PROJECT]
+Target=enctest.HEX
+Development_Mode=
+Processor=0x873F
+ToolSuite=CCS
+Processor_Text=PIC16F873
+
+[Directories]
+Include=C:\microtools\PICC\SOURCE\enctest;C:\microtools\PICC\Ex
+Library=
+LinkerScript=
+
+[Target Data]
+FileList=D:\source\ndi-sandbox\trunk\WheelWatcher\code\enctest\enctest.c
+BuildTool=CCSC
+OptionString=-p +FM
+AdditionalOptionString=
+BuildRequired=1
+
+[enctest.c]
+Type=4
+Path=
+FileList=
+BuildTool=
+OptionString=
+AdditionalOptionString=
+
+[mru-list]
+1=enctest.c
+
+[Windows]
+0=0000 enctest.c 0 0 796 451 3 0
+
+[Opened Files]
+1=enctest.h
+2=enctest.c
+3=
+4=..\..\..\..\..\..\microtools\PICC\Devices\16F876.h
+5=..\..\..\..\..\..\microtools\PICC\source\enctest\enctest.sta
+6=
+[debugperif]
+selected=Analog/Digital Conv
+[debugram]
+autoread=1
+[debugbreak]
+count=0
+[pcwdebug]
+watchcol0=75
+[debugwatch]
+count=0
+[debugexpr]
+expr=
+sideeffects=0
+[debugsfr]
+autoread=1
+[Units]
+Count=1
+1=enctest (main)

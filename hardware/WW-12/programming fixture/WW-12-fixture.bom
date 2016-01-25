@@ -1,0 +1,14 @@
+Partlist exported from D:/docs/robotics/nubotics/WW-12/programming fixture/WW-12-fixture.sch at 11/14/2010 2:27:55 PM
+
+Part          Value                   Device            Package            Description                         
+C1            0.01uF                  C-USC0603         C0603              CAPACITOR, American symbol          
+FM1           FIDUCIAL2MMCIRCLE       FIDUCIAL2MMCIRCLE FIDUCIAL_2MMCIRCLE Fiducial marks                      
+FM2           FIDUCIAL2MMCIRCLE       FIDUCIAL2MMCIRCLE FIDUCIAL_2MMCIRCLE Fiducial marks                      
+HVSP          8 pin 0.1" pitch header MA04-2            MA04-2             PIN HEADER                          
+ISP           6 pin 0.1" pitch header MA03-2            MA03-2             PIN HEADER                          
+J1            22-23-2051              22-23-2051        22-23-2051         .100" (2.54mm) Center Header - 5 Pin
+LED1          green                   LEDCHIP-LED0603   CHIP-LED0603       LED                                 
+R1            220                     R-US_R0603        R0603              RESISTOR, American symbol           
+TP1-DEBUGWIRE DEBUG WIRE              TPB1,27           B1,27              Test pad                            
+TP2-PB3       DEBUG WIRE              TPB1,27           B1,27              Test pad                            
+U$1           WW02-CENTER             WW02-CENTER       WW02-CENTER        WW-02/WW-12 center hole             

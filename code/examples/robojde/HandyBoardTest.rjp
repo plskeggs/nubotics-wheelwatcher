@@ -1,0 +1,9 @@
+Cookie=hbp
+Version=1
+MainClass=HandyBoardTest
+StackSize=150
+BuildBeforeLoad=true
+NativeMethodFile=HBTNativ.asm
+NativeMethod=static int HandyBoardTest.irPulseCount()
+OpenFile=HandyBoardTest.java
+OpenFile=HBTNativ.asm

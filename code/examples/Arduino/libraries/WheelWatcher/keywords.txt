@@ -1,0 +1,24 @@
+#######################################
+# Syntax Coloring Map WheelCommander
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
+WheelCommander	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
+Init	KEYWORD2
+GetStatus	KEYWORD2
+Go	KEYWORD2
+Coast	KEYWORD2
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+BD_38400	LITERAL1

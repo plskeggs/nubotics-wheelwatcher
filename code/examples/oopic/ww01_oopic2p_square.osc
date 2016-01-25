@@ -1,0 +1,248 @@
+'------------------------------------------------
+'OOPIC II+ WheelWatcher Drive in a Square Example
+'
+' This example assumes the robot platform contains two RC servos modified for
+' continuous rotation, two WW-01 boards, and one OOPIC II+ controller board.
+' The IOLines used are appropriate for a MarkIII controller; adjust the IOLines
+' to suit your robot.
+' 
+' Noetic Design, Inc.
+' Rev 1.00 - 7/12/2004
+'
+' NOTE: this example does not use the DIR and CLK lines -- it uses the OOPIC oQencode objects
+' to do the same thing.
+' IOLine 13 = Left WheelWatcher DIR
+' IOLine 12 = Right WheelWatcher DIR
+' IOLine 8 = Left WheelWatcher CLK
+' IOLine 17 = Right WheelWatcher CLK (for PIC use RA4/Exp 1, but this is LSDA for the OOPIC, so use RC1 for OOPIC)
+' IOLine 27 = Left CHA
+' IOLine 26 = Left CHB
+' IOLine 25 = Right CHA
+' IOLine 24 = Right CHB
+' IOLine 10 = Left Servo
+' IOLine 9 = Right Servo
+'
+' NOTE: this example does not use the following line sensors or proximity sensors,
+' beyond setting them up.
+' IOLine 7 = Left Line Sensor
+' IOLine 6 = Center Line Sensor (N/C)
+' IOLine 5 = Right Line Sensor
+' IOLine 4 = Left Eye (Left GP2D02)
+' IOLine 3 = Right Eye (Right GP2D02)
+'----------------------------------------
+Dim lww As New oQencode 
+Dim rww As New oQencode
+Dim ls As New oServo
+Dim rs As New oServo
+Dim rc As New oCompare
+Dim lc As New oCompare
+Dim lw As New oWire
+Dim rw As New oWire
+Dim rstop As New oWord
+Dim lstop As New oWord
+Dim re As New oA2D
+Dim le As New oA2D
+Dim rl As New oDio1
+Dim ll As New oDio1
+
+'-------------------------------------------
+' Perform One Time Hardware Setup
+'-------------------------------------------
+Sub Setup()
+  oopic.pullup = 1 ' pull up (to logic high) the PIC B port lines using the PIC's weak internal pullups
+
+' set up quadrature encoder objects
+  lww.IOLine1 = 27 
+  lww.IOLine2 = 26 
+  lww.Operate = cvTrue
+
+  rww.IOLine1 = 25
+  rww.IOLine2 = 24
+  rww.Operate = cvTrue
+
+' set up servos
+  ls.IOLine = 10
+  ls.Center = 23        ' means 31 = 1.5ms, 0 = .638ms, 63 = 2.39ms
+  ls.Operate = cvTrue
+  ls = 31 ' neutral
+
+  rs.IOLine = 9
+  rs.Center = 23
+  rs.Operate = cvTrue
+  rs = 31 ' neutral
+
+' set up the right virtual circuit
+  rstop = rww				  ' assume we are at the goal for now
+  rc.Input.Link(rww)          ' compare the current right wheel watcher count
+  rc.ReferenceIn.Link(rstop)  ' to the right stop variable
+  rc.Fuzziness = 8            ' allow up to an error of 8 ticks
+  rc.Operate = 1              
+  rw.Input.Link(rc.Between)   ' when rww is between rstop +/- fuzziness, then turn off the servo
+  rw.Output.Link(rs.Operate)
+  rw.InvertIn = 1             ' this inverts the sense of between -- servo is on when not between
+  rw.Operate = 1
+
+' set up the left virtual circuit
+  lstop = lww                 ' assume we are at the goal for now
+  lc.Input.Link(lww)          ' compare the current right wheel watcher count
+  lc.ReferenceIn.Link(lstop)  ' to the right stop variable
+  lc.Fuzziness = 8            ' allow up to an error of 8 ticks
+  lc.Operate = 1              
+  lw.Input.Link(lc.Between)   ' when rww is between rstop +/- fuzziness, then turn off the servo
+  lw.Output.Link(ls.Operate)
+  lw.InvertIn = 1             ' this inverts the sense of between -- servo is on when not between
+  lw.Operate = 1
+
+' set up ranging sensors (not used in this example):
+  le.IOLine = 0 ' same as 4
+  le.Operate = cvTrue
+  re.IOLine = 3
+  re.Operate = cvTrue
+
+' set up line following sensors (not used):
+  ll.IOLine = 7
+  ll.Direction = cvInput
+  rl.IOLine = 5
+  rl.Direction = cvInput
+End Sub
+
+'-------------------------------------------
+' SetRightDriveDistance
+' 
+' This subroutine takes two parameters:
+' dir: set to 1 for forward, 0 for backward
+' dist: set in terms of encoder ticks; with
+'      the oQencode object, you get 64 ticks
+'      per wheel rotation.
+'
+' We use the following objects:
+' rww: the quadrature encoder object, which counts
+'     encoder ticks
+' rs: the right servo
+' rstop: the goal value for the encoder count
+' rc: a compare object, used to determine
+'     when the goal is reached
+' rw: a wire, to connect the result of the
+'     comparison to the operation of the
+'     servo.
+'
+' How it works:
+' We turn off the servo to ensure the motor is stopped.
+' We connect the count of the encoder (rww)
+' to the input of the comparison object.
+' We calculate a stopping point based on the
+' desired direction and distance, then
+' link that to the comparison object too.
+' We use the fuzziness feature of oCompare to
+' tolerate a little error in the counter
+' since the robot can't "stop on a dime."
+' We then link, using a wire, the output of
+' the comparison to the running of the servo.
+' We invert the wire's value, so that the servo
+' runs until the comparison is reached.
+'-------------------------------------------
+
+Sub SetRightDriveDistance(dir As Byte, dist As Word)
+    rs.Operate = 0
+' NOTE: the right wheel counts backwards compared to the left, when moving the robot forwards,
+' so we correct for that here.  That way, dir = 1 means forward for both wheels.
+    if dir = 1 then             
+        rstop = rww - dist
+        rs = 0
+    else
+        rstop = rww + dist
+        rs = 63
+    end if
+End Sub
+
+'-------------------------------------------
+' SetLeftDriveDistance
+' 
+'-------------------------------------------
+
+Sub SetLeftDriveDistance(dirl as Byte, distl As Word)
+    ls.Operate = 0
+    if dirl = 0 then
+        lstop = lww - distl
+        ls = 0
+    else
+        lstop = lww + distl
+        ls = 63
+    end if
+End Sub
+
+
+
+'-------------------------------------------
+' WaitDone
+'
+' Wait until both servos are turned of,
+' which indicates that they have both reached
+' their goals.
+'-------------------------------------------
+
+Sub WaitDone()
+    Do
+        if Not rs.Operate then
+            if Not ls.Operate then
+                exit do
+            end if
+        end if
+    Loop
+End Sub
+
+'-------------------------------------------
+' Main
+'
+' This simple example uses the above subroutines to drive the robot in a
+' 6" square pattern.
+' The resulting pattern will be followed well, but errors will accumulate 
+' over time due to wheel slippage and lack of velocity and acceleration
+' control, as well as the need to use the fuzziness feature of oCompare.
+' A more complex example would include these as well.
+'
+' How do we calculate how many ticks to count on the encoders?  Here's how.
+' The example robot's wheel base is 3.5":
+'   3.5 * PI ~= 11" wheel base circumference
+' To spin in place 90 degrees, move each wheel by 1/4 of the wheel base 
+' circumference = 11/4 = 2.75", with both wheels turning in opposite directions.
+' (Another option is to leave one wheel stopped, and move the other forward by
+' 11/2 = 5.5".)
+' Now we need to figure out how to convert this distance required into
+' ticks of the encoder.  The example robot's wheels are 2.75" in diameter:
+'   2.75 * PI = 8.64" wheel circumference
+' with oQencode, we get 64 ticks per turn, leaving:
+'   64/8.64 = 7.40 ticks per inch
+' so, to spin in place 1/4 turn, we need to count:
+'   7.40 ticks per inch * 2.75" = 20 ticks.
+' To move 6" forward, we need to count:
+'   7.40 ticks per inch * 6" = 44 ticks.
+'-------------------------------------------
+
+Sub Main()
+  Setup
+  Do
+    ' drive a distance
+    SetLeftDriveDistance(1, 44) ' drive both wheels forward 6"
+    SetRightDriveDistance(1, 44)
+    ls.Operate = 1          ' now, start both motors at the same time.
+    rs.Operate = 1
+    WaitDone
+    OOPIC.Delay = 85            ' give it time to stop.
+
+' Spin in place 1/4 turn:
+    SetLeftDriveDistance(1, 20) 
+    SetRightDriveDistance(0, 20) ' turn clockwise 1/4 turn
+    ls.Operate = 1
+    rs.Operate = 1
+    WaitDone
+    OOPIC.Delay = 85
+
+' Alteratively, move just the left wheel:
+'   SetLeftDriveDistance(1, 41) 
+'   ls.Operate = 1
+'   WaitDone
+'   OOPIC.Delay = 85
+   Loop
+
+End Sub

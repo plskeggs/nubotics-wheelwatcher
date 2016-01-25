@@ -1,0 +1,10 @@
+Cookie=hbp
+Version=1
+MainClass=Sumo11Test
+StackSize=150
+BuildBeforeLoad=true
+NativeMethodFile=HBTNativ.asm
+NativeMethod=static int HandyBoardTest.irPulseCount();
+OpenFile=HandyBoardTest.java
+OpenFile=Sumo11Test.java
+OpenFile=HBTNativ.asm

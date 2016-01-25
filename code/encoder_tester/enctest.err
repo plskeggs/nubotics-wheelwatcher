@@ -1,0 +1,14 @@
+>>> Warning 208 "enctest.c" Line 127(1,11): Function not void and does not return a value  change_isr
+>>> Warning 208 "enctest.c" Line 158(1,11): Function not void and does not return a value  timer0_isr
+>>> Warning 208 "enctest.c" Line 185(1,7): Function not void and does not return a value  b0_isr
+>>> Warning 208 "enctest.c" Line 280(1,11): Function not void and does not return a value  timer2_isr
+>>> Warning 202 "enctest.c" Line 14(6,21): Variable never used:   timer2_overflow
+>>> Warning 202 "enctest.c" Line 41(6,22): Variable never used:   prev_t2_R_hi_raw
+>>> Warning 202 "enctest.c" Line 47(6,22): Variable never used:   prev_t2_R_hi_clk
+>>> Warning 202 "enctest.c" Line 422(15,20): Variable never used:   speed
+>>> Warning 202 "enctest.c" Line 423(20,30): Variable never used:   goal_speed
+>>> Warning 202 "enctest.c" Line 424(15,20): Variable never used:   count
+>>> Warning 202 "enctest.c" Line 425(16,21): Variable never used:   lasta
+>>> Warning 202 "enctest.c" Line 426(16,21): Variable never used:   lastb
+      Memory usage:   ROM=76%      RAM=48% - 57%
+      0 Errors,  12 Warnings.

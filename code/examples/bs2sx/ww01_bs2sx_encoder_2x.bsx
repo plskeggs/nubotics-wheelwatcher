@@ -1,0 +1,160 @@
+'{$STAMP BS2sx}
+'{$PBASIC 2.5}
+'==This program is an example of using a BS2SX and
+'==pbasic 2.5 with WheelWatcher encoders.
+'==copyright by John Gregory, 7/16/2004
+'--this source or portions thereof may not be used
+'--for commercial purposes.
+'--this source or portions thereof may be copied for
+'--personal use
+'--provided for use as a WheelWatcher example program
+'--for Noetic Design, Inc.
+
+Encoder_Variables:
+  L_cnt VAR Word   'left encoder counter
+  R_cnt VAR Word   'right encoder counter
+  X_cnt VAR Word   'left encoder state
+  y_cnt VAR Word   'left encoder state
+  L_cnt_dir VAR Word  'left counter direction
+  R_cnt_dir VAR Word  'right counter direction
+  L_velocity_cnt VAR Word
+  R_velocity_cnt VAR Word
+  prev_Ldir VAR Byte
+  prev_Rdir VAR Byte
+  lchk_cntl VAR Byte
+  rchk_cntl VAR Byte
+  Chg_dir VAR Byte
+  sensors VAR Nib
+  encoder VAR Nib
+
+Main:
+  INPUT 4 ' left WW-01 ChA
+  INPUT 5 ' right WW-01 ChA
+  INPUT 6 ' left WW-01 DIR
+  INPUT 7 ' right WW-01 DIR
+
+  Chg_dir = -1
+  L_cnt_dir = 1
+  R_cnt_dir = 1
+  '‘====================================
+  cntl    PIN     0
+  baud    CON     17405
+  header  CON     106
+  pulse   CON     90
+
+  GOSUB setup     'these steps initialize the FT639
+  GOSUB setpulse  '
+  GOSUB setheader '
+  GOSUB setactive '
+
+  DO
+    GOSUB Chk_sensors
+    GOSUB Motor_cntl
+    GOSUB Chk_encoders
+
+   LOOP
+
+'---  these sensors may be any object detection type
+'--- (IR or bumper)
+Chk_sensors:
+  sensors.BIT0 = IN1
+  sensors.BIT1 = IN2
+RETURN
+
+Motor_cntl:
+  ON sensors GOSUB  backward, lefturn, righturn, forward
+RETURN
+
+'--These routines check the encoders (left and right)
+'--and count up or down depending on if the direction
+'--changed.
+'---this program is set to check for a falling
+'---edge on the encoder ChA line. (in4/5)
+'---the velocity_cnt variable may be used to measure
+'---the width of the clock pulse but the way it is
+'---used here will not be very acurate...
+Chk_encoders:
+
+    '-- 4 & 5 are connected to the ChA pins of
+    '-- each encoder.
+    x_cnt = IN4
+    y_cnt = IN5
+
+    '-- check left encoder  -------
+    IF x_cnt = 0 THEN
+      l_cnt = l_cnt + L_cnt_dir
+    ENDIF
+
+    '-- check right encoder  --------
+    IF y_cnt = 0 THEN
+      r_cnt = r_cnt + R_cnt_dir
+    ENDIF
+
+    GOSUB chk_Ldir
+    GOSUB chk_Rdir
+
+    RETURN
+
+  '--The Ldir/Rdir routines result in a cnt_dir
+  '--being a +1 or -1.  These variables are then
+  '--used to add or subtract 1 from the L_cnt
+  '--and R_cnt variables for total pulses counted.
+
+'-- check the Dir line on the left encoder --
+'-- look for a change (comparing to prev_Ldir) --
+chk_Ldir:
+  IF ((IN6 = 1) AND (prev_Ldir = 0) OR (IN6 = 0 AND prev_Ldir = 1)) THEN
+    prev_Ldir = IN6
+    L_cnt_dir = L_cnt_dir * Chg_dir
+  ENDIF
+  RETURN
+
+'-- check the Dir line on the right encoder --
+'-- look for a change (comparing to prev_Rdir) --
+chk_Rdir:
+  IF ((IN7 = 1) AND (prev_Rdir = 1) OR (IN7 = 0 AND prev_Rdir = 1)) THEN
+    prev_Rdir = IN7
+    R_cnt_dir = R_cnt_dir * Chg_dir
+  ENDIF
+  RETURN
+'---begin section = servo setup/contol
+'   Subroutines used to set up the FT639 Serial Servo Controller Chip
+'   (http://www.ferrettronics.com/docs/FT639/ft639.pdf)
+'-- substitute any code needed here
+'-- for whatever servo controller you
+'-- are using
+setactive:
+  SEROUT cntl,baud,[117]
+  SEROUT cntl,baud,[117]   'sets active mode
+  RETURN
+setpulse:
+  SEROUT cntl,baud,[pulse] 'sets pulse length
+  RETURN
+setup:
+  SEROUT cntl,baud,[122]   'sets setup mode
+  RETURN
+setheader:
+  SEROUT cntl,baud,[header] 'sets header length
+  RETURN
+
+'--motion subroutines
+lefturn:
+  SEROUT cntl,baud,[1,131] 'starts L (no. 1) servo fwd slowly
+  SEROUT cntl,baud,[31,159] 'starts R (no. 2) servo fwd quickly
+  PAUSE 2000
+  RETURN
+righturn:
+  SEROUT cntl,baud,[0,128] 'starts L (no. 1) servo fwd quickly
+  SEROUT cntl,baud,[16,140] 'starts R (no. 2) servo fwd slowly
+  PAUSE 2000
+  RETURN
+
+backward:
+RETURN
+
+forward:
+  SEROUT cntl,baud,[0,128] 'L (no. 1) servo fwd full
+  SEROUT cntl,baud,[31,159] 'R (no. 2) servo fwd full
+
+  RETURN
+'---====end section = servo setup/control

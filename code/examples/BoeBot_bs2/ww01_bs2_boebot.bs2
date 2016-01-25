@@ -1,0 +1,206 @@
+'{$STAMP BS2}
+'{$PBASIC 2.5}
+'== This program is an example of using a BS2 and
+'== pbasic 2.5 with Nubotics WheelWatcher encoders on a BoEBot.
+'== This program is based on an example by John Gregory (c) 2004,
+'== for BS2SX and a serial servo controller.
+'== This example improves on his by driving the servos
+'== directly from the BS2, while also counting
+'== encoder clicks to measure distance.  This is used to
+'== drive the robot in a square.
+
+
+' -----[ I/O Definitions ]------------------------------------------------------
+
+LChA            PIN     0                       ' left encoder channel A; pulses 64 times per wheel rotation
+LDir            PIN     1                       ' left encoder direction flag
+RChA            PIN     2                       ' right encoder channel A
+RDir            PIN     3                       ' right encoder direction flag
+LMotor          CON     12                      ' left servo motor
+RMotor          CON     13                      ' right servo motor
+
+' -----[ Constants ]------------------------------------------------------------
+' (borrowed from the Parallax SumoBot main competition program example)
+LFwdFast        CON     500                     ' left motor forward; fast
+LFwdSlow        CON     700                     ' left motor forward; slow
+LStop           CON     750                     ' left motor stop
+LRevSlow        CON     800                     ' left motor reverse; slow
+LRevFast        CON     1000                    ' left motor reverse; fast
+
+RFwdFast        CON     500                     ' right motor forward; fast
+RFwdSlow        CON     700                     ' right motor forward; slow
+RStop           CON     750                     ' right motor stop
+RRevSlow        CON     800                     ' right motor reverse; slow
+RRevFast        CON     1000                    ' right motor reverse; fast
+
+' -----[ Variables ]------------------------------------------------------------
+L_dist          VAR     Word                    ' left encoder counter
+R_dist          VAR     Word                    ' right encoder counter
+Cur_LChA        VAR     Bit                     ' current state of left channel A
+Cur_RChA        VAR     Bit                     ' state of right A
+Prev_LChA       VAR     Bit                     ' previous state of left channel A
+Prev_RChA       VAR     Bit                     ' previous state of right A
+Counter         VAR     Byte                    ' stop pulse counter
+
+
+
+' -----[ Main Routine ]---------------------------------------------------------
+Main:
+' set up inputs from encoders
+  INPUT 0
+  INPUT 1
+  INPUT 2
+  INPUT 3
+
+' initialize state variables
+  Prev_LChA = LChA
+  Prev_RChA = RChA
+
+' zero encoder counts
+  L_dist = 0
+  R_dist = 0
+
+  DEBUG "Nubotics WW-01 BS2 BoeBot Drive in a Square Test", CR
+
+  'gosub Encoder_Test
+
+' drive in a square forever
+  DO
+    GOSUB Forward_OneRot
+    GOSUB Stop_Motion
+
+    GOSUB Turn_Left
+    GOSUB Stop_Motion
+  LOOP
+
+END
+
+'------------------------------
+'- Controlled Motion Routines -
+'-                            -
+'- These routines use the     -
+'- WW-01 encoders to move     -
+'- the wheels fixed distances -
+'- regardless of battery level-
+'- or servo absolute speed.   -
+'------------------------------
+Forward_OneRot:
+  DEBUG "Forward 1 wheel rotation", CR
+  DO
+    GOSUB Fast_Fwd
+    GOSUB Read_Encoders
+    ' stop when we see 64 ticks of ChA = 1 rotation; but don't be confused
+    ' by negative numbers on L_dist, which can happen for brief periods
+    ' while changing motor speed and/or direction
+    IF (L_dist >= 64) AND (L_dist < 32767) THEN EXIT
+  LOOP
+RETURN
+
+Stop_Motion:
+  DEBUG "Stopping at L_dist=", SDEC L_dist, " R_dist=", SDEC R_dist, CR
+  GOSUB Stop_Servos
+  L_dist = 0
+  R_dist = 0
+RETURN
+
+Turn_Right:
+  DEBUG "Turn right 90 degrees", CR
+  DO
+    GOSUB Spin_Right
+    GOSUB Read_Encoders
+    ' stop when we see 52 ticks of ChA = 1 rotation of the left wheel,
+    ' while the right wheel is stopped; this is twice as accurate as
+    ' spinning left forward and right back at the same speed, as the distance
+    ' each wheel travels in that case is 1/2 as far, giving us 1/2 the
+    ' number of encoder ticks than we do here
+    IF (L_dist >= 52) AND (L_dist < 32767) THEN EXIT
+  LOOP
+RETURN
+
+Turn_Left:
+  DEBUG "Turn left 90 degrees", CR
+  DO
+    GOSUB Spin_Left
+    GOSUB Read_Encoders
+    IF (R_dist >= 52) AND (R_dist < 32767) THEN EXIT
+  LOOP
+RETURN
+
+'--------------------------------
+'- Uncontrolled Motion Routines -
+'-                              -
+'- These helper routines pulse  -
+'- the servo motors the right   -
+'- amount of time to move the   -
+'- base in a particular way.    -
+'--------------------------------
+Fast_Fwd:
+  PULSOUT LMotor, LFwdFast
+  PULSOUT RMotor, RFwdFast
+RETURN
+
+Spin_Right:
+  PULSOUT LMotor, LFwdSlow
+  PULSOUT RMotor, RStop
+RETURN
+
+Spin_Left:
+  PULSOUT LMotor, LStop
+  PULSOUT RMotor, RFwdSlow
+RETURN
+
+Stop_Servos:
+  FOR Counter = 1 TO 10                          ' stop motors
+    PULSOUT LMotor, LStop
+    PULSOUT RMotor, RStop
+    PAUSE 20
+  NEXT
+RETURN
+
+
+'--------------------------------
+'-        Read Encoders         -
+'-                              -
+'- This routine samples the     -
+'- channel A quadrature signals,-
+'- then compares them to their  -
+'- previous states.  If they    -
+'- have changed, then use the   -
+'- direction line to either     -
+'- increase or decrease the     -
+'- distance variables.          -
+'--------------------------------
+Read_Encoders:
+    '-- check left encoder  -------
+    Cur_LChA = LChA
+    Cur_RChA = RChA
+    IF Cur_LChA <> Prev_LChA THEN
+      IF LDir = 0 THEN ' left wheel's direction is forward when LDir = 0
+        L_dist = L_dist + 1
+      ELSE
+        L_dist = L_dist - 1
+      ENDIF
+      Prev_LChA = Cur_LChA
+    ENDIF
+
+    '-- check right encoder  --------
+    IF Cur_RChA <> Prev_RChA THEN
+      IF RDir = 1 THEN ' right wheel's direction is forward when RDir = 1
+        R_dist = R_dist + 1
+      ELSE
+        R_dist = R_dist - 1
+      ENDIF
+      Prev_RChA = Cur_RChA
+    ENDIF
+RETURN
+
+' call this when you first hook up your encoders;
+' watch the counts as you turn the wheels, and make sure
+' you get 64 counts per rotation forward and backward
+' for each encoder
+Encoder_Test:
+DO
+  GOSUB Read_encoders
+  DEBUG "L_dist=", SDEC L_dist, " R_dist=", SDEC R_dist, CR
+LOOP
+RETURN ' never does

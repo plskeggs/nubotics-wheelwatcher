@@ -1,0 +1,230 @@
+004-005 @READ_PROGRAM_MEMORY8.P1
+004     @WRITE_PROGRAM_MEMORY8.P2
+015     CCP_1
+015     CCP_1_LOW
+016     CCP_1_HIGH
+01B     CCP_2
+01B     CCP_2_LOW
+01C     CCP_2_HIGH
+020     @SCRATCH
+021     @SCRATCH
+021     _RETURN_
+022     @SCRATCH
+023     @SCRATCH
+024     @INTERRUPT_AREA
+025     @INTERRUPT_AREA
+026     @INTERRUPT_AREA
+027     @INTERRUPT_AREA
+028     @INTERRUPT_AREA
+029     @INTERRUPT_AREA
+02A     @INTERRUPT_AREA
+02B     @INTERRUPT_AREA
+02C     strtok.save
+02D-030 _Randseed
+031-032 timer2_overflow
+033-034 timer2_ticks
+035-036 timer2_seconds_counter
+037-038 seconds_elapsed
+039     new_b
+03A     prev_b
+03B     change_b
+03C.0   change_test
+03C.1   quad_mode
+03C.2   ww02_mode
+03C.3   smart_mode
+03C.4   swap_chs_mode
+03C.5   enc_chA_R
+03C.6   enc_chB_R
+03C.7   enc_DIR_R
+03D.0   enc_CLK_R
+03D.1   enc_fwdir_R_raw
+03D.2   enc_fwdir_R_clk
+03D.3   dir_R
+03E-03F enc_dist_R_raw
+040-041 enc_dist_R_clk
+042-043 prev_t2_R_hi_raw
+044-045 prev_t2_R_raw
+046-047 enc_period_R_hi_raw
+048-049 enc_period_R_raw
+04A-04B enc_speed_R_raw
+04C-04D prev_t2_R_hi_clk
+04E-04F prev_t2_R_clk
+050-051 enc_period_R_hi_clk
+052-053 enc_period_R_clk
+054-05B enc_period_R_clk_array
+05C     array_index
+05D-05E enc_speed_R_clk
+05F-060 req_speed_R
+061-062 err_R
+063-064 out_R
+065-066 MAIN.speed
+067-068 MAIN.goal_speed
+069-06A MAIN.count
+06B.0   MAIN.lasta
+06B.1   MAIN.lastb
+06B.2   MAIN.printit
+06B.3   MAIN.failed_fwd
+06B.4   MAIN.failed_bak
+06B.5   MAIN.failed_vcc
+06B.6   MAIN.failed_gnd
+06B.7   MAIN.failed_fwd_per
+06C-06D MAIN.diff_dst
+06E-06F MAIN.diff_spd
+070.0   MAIN.failed_bak_per
+070.1   MAIN.failed
+070.2   MAIN.blink
+071     MAIN.voltage
+072-073 MAIN.lower_limit
+074-075 MAIN.upper_limit
+076-077 check_duty_cycle.average
+076     set_motor_speed_dir.left
+076     print_enc_speeds.fwdv
+076     print_sensors.@SCRATCH1
+076     calc_enc_speeds.@SCRATCH1
+076     setup.@SCRATCH1
+076     MAIN.@SCRATCH1
+077     set_motor_speed_dir.speed
+077     @delay_ms1.P1
+077     @PRINTF_X_38400_62_63.P2
+077     @PRINTF_D_38400_62_63.P3
+077     print_sensors.@SCRATCH2
+077     MAIN.@SCRATCH2
+078     set_motor_speed_dir.fwdd
+078     @PRINTF_D_38400_62_63.P1
+078-079 check_duty_cycle.minimum
+078     @PRINTF_X_38400_62_63.P1
+078     print_sensors.@SCRATCH3
+078     MAIN.@SCRATCH3
+079     print_sensors.@SCRATCH4
+079     @PRINTF_D_38400_62_63.@SCRATCH1
+079     MAIN.@SCRATCH4
+07A-07B check_duty_cycle.maximum
+07A     print_sensors.@SCRATCH5
+07A     @PRINTF_D_38400_62_63.@SCRATCH2
+07B     print_sensors.@SCRATCH6
+07B     @PRINTF_D_38400_62_63.@SCRATCH3
+07C     check_duty_cycle.i
+07C     print_sensors.@SCRATCH7
+07C     @PRINTF_D_38400_62_63.@SCRATCH4
+07D     @DIV88.P1
+07D-07E @DIV1616.P2
+07D     print_sensors.@SCRATCH8
+07D     check_duty_cycle.@SCRATCH1
+07E     @DIV88.P1
+07E     @PSTRINGCN7_38400_62_63.P2
+07E     check_duty_cycle.@SCRATCH2
+0A0-0A1 @DIV1616.P1
+0A0-0A1 @PRINTF_LD_38400_62_63.P2
+0A0     @PSTRINGCN7_38400_62_63.@SCRATCH1
+0A0     @PSTRINGC7_38400_62_63.@SCRATCH1
+0A0     @DIV88.@SCRATCH1
+0A1     @PSTRINGCN7_38400_62_63.@SCRATCH2
+0A1     @PSTRINGC7_38400_62_63.@SCRATCH2
+0A2     @DIV1616.@SCRATCH1
+0A2     @PSTRINGCN7_38400_62_63.@SCRATCH3
+0A2     @PRINTF_LD_38400_62_63.@SCRATCH1
+0A2     @PSTRINGC7_38400_62_63.@SCRATCH3
+0A3     @PRINTF_LD_38400_62_63.@SCRATCH2
+0A4     @PRINTF_LD_38400_62_63.@SCRATCH3
+0A5     @PRINTF_LD_38400_62_63.@SCRATCH4
+0A6     @PRINTF_LD_38400_62_63.@SCRATCH5
+0A7     @PRINTF_LD_38400_62_63.@SCRATCH6
+0AA-0AB add_period.period
+0AC     add_period.@SCRATCH1
+10D-10E @READ_PROGRAM_MEMORY8.P1
+10D-10E @WRITE_PROGRAM_MEMORY8.P2
+
+ROM Allocation:
+02CB  @delay_ms1
+0506  @DIV1616
+031F  init_pwm
+047B  set_motor_speed_dir
+0490  read_sensors
+049D  print_sensors
+0045  @const372
+038C  @PSTRINGCN7_38400_62_63
+03F1  @PRINTF_LD_38400_62_63
+0059  change_isr
+0091  add_period
+00A6  timer0_isr
+00E4  b0_isr
+0537  check_duty_cycle
+0113  @const387
+0135  @const388
+0330  @PSTRINGC7_38400_62_63
+014B  @const390
+0621  calc_enc_speeds
+0717  print_enc_speeds
+0162  @const394
+0672  @PRINTF_X_38400_62_63
+0695  @DIV88
+06AE  @PRINTF_D_38400_62_63
+0185  @const404
+01A8  timer2_isr
+01BD  @const413
+01DB  @const414
+02DE  setup
+0472  clear_counts
+0800  MAIN
+01EC  @const440
+01F6  @const441
+0200  @const442
+020A  @const443
+0214  @const444
+021C  @const445
+0227  @const446
+022E  @const447
+0237  @const448
+023E  @const449
+0247  @const450
+0250  @const451
+0264  @const452
+027B  @const453
+0285  @const454
+0299  @const455
+029E  @const456
+02B5  @const457
+02BA  @const458
+02BF  @const459
+0800  @cinit
+0136  StrtoulGO
+0136  StrtolGO
+
+
+User Memory space: 
+
+User Memory space: 
+
+Project Directory:
+    D:\source\ndi-sandbox\trunk\Nubotics\WheelWatcher\code\enctest\
+
+Project Files:
+    enctest.c
+    enctest.h
+    ..\..\..\..\..\..\..\microtools\picc4\devices\16F873.h
+    ..\..\..\..\..\..\..\microtools\picc4\drivers\stdlib.h
+    ..\..\..\..\..\..\..\microtools\picc4\drivers\stddef.h
+    ..\..\..\..\..\..\..\microtools\picc4\drivers\string.h
+    ..\..\..\..\..\..\..\microtools\picc4\drivers\ctype.h
+
+Units:
+    D:\source\ndi-sandbox\trunk\Nubotics\WheelWatcher\code\enctest\enctest (main)
+
+Compiler Settings:
+    Processor:      PIC16F873
+    Pointer Size:   8
+    ADC Range:      0-255
+    Opt Level:      9
+    Short,Int,Long: UNSIGNED: 1,8,16
+    Float,Double:   32,32
+
+Output Files:
+    Errors:      enctest.err
+    Ext Symbols: enctest.esym
+    INHX8:       enctest.hex
+    Symbols:     enctest.sym
+    List:        enctest.lst
+    Debug/COFF:  enctest.cof
+    Project:     enctest.PJT
+    Call Tree:   enctest.tre
+    Statistics:  enctest.sta

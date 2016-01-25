@@ -1,0 +1,234 @@
+'-----------------------------------------------------------------
+'Kronos Robotics DIOS WheelWatcher Example
+'
+' Copyright 2004, Noetic Design, Inc.
+'
+'
+'This example uses hardware interrupts to count ChA and ChB edges
+'for the left and right wheel.  These counts are used to determine
+'when to stop the servos.  This is used to drive the robot in a
+'square pattern.
+'
+'NOTE: with Dios compiler version 2.04, we were unable to get INT2
+'and TMR3 to function correctly.
+'-----------------------------------------------------------------
+
+func main()
+  dim x as integer
+  global left_pos as integer
+  global right_pos as integer
+  global left_goal as integer
+  global right_goal as integer
+  global rcha as integer
+  global rchb as integer
+  global lcha as integer
+  global lchb as integer
+
+  SERVOinit(2)   ' use the DIOS servo controller library to run 2 servos
+  print "reset"
+
+  left_pos = 0
+  right_pos = 0
+  rcha = 0
+  rchb = 0
+  lcha = 0
+  lchb = 0
+
+  print "starting"
+
+  onirq INT0,A_left_ww01_clk    ' define what routines to call for each interrupt source
+  onirq INT1,A_right_ww01_clk
+  onirq INT2,B_left_ww01_clk
+  onirq TMR3,B_right_ww01_clk
+
+  IRQINT0clear()                ' clear any pending interrupts
+  IRQINT1clear()
+  IRQINT2clear()
+
+  IRQINT0start()                ' enable the interrupts
+  IRQINT1start()
+  IRQINT2start()
+
+                                ' timer3 is used as a single count counter
+  T3CON = $83                   ' 16bit access, external clock, enabled
+  TMR3L = $FFFF                 ' set to max count, so first tick causes an interrupt
+  IRQTMR3clear()
+  IRQTMR3start()
+
+  IRQGLOBALstart()              ' enable all interrupts
+
+  'SERVO1us 1500                ' uncomment this to calibrate your servos
+  'SERVO2us 1500
+  'print "zero servos"
+  'pause 30000
+
+' run in a square pattern
+loop:
+  go_distance(44, 44)         ' go forward 12" (these counts should be doubled if you get the ChB interrupts to work)
+  print_location
+  pause 500
+  go_distance(10, -10)          ' spin to the right 90 degrees
+  print_location
+  pause 500
+  goto loop
+endfunc
+
+
+'-------------------------------
+' Go Distance
+'
+' This takes relative distances
+' to move the left and right
+' wheels.  The servos are turned
+' on for the correct direction.
+' Then, we wait for the interrupt
+' handlers to cause the x_goal
+' variables to reach zero, at which
+' point we stop the appropriate servo.
+' When both are stopped, we
+' return to the caller.
+'-------------------------------
+func go_distance(left, right)
+  dim labsgoal as integer
+  dim rabsgoal as integer
+  dim ldelta as integer
+  dim rdelta as integer
+  dim done as integer
+
+  labsgoal = left_pos + left    ' calculate goal absolute distances
+  rabsgoal = right_pos + right
+
+  print "left  abs goal = ", labsgoal
+  print "right abs goal = ", rabsgoal
+
+  if left.bit(15) = 0 then   ' drive motor in correct direction based on sign (+/-)
+    'print "left fwd"
+    left_goal = left
+    SERVO1us 2000
+  else
+    'print "left bkwd"
+    SERVO1us 1000
+    left_goal = 0 - left
+  endif
+  if right.bit(15) = 0 then  ' note: DIOS integers are unsigned, so we have to do signed comparisons indirectly
+    'print "right fwd"
+    SERVO2us 1000
+    right_goal = right
+  else
+    'print "right bkwd"
+    SERVO2us 2000
+    right_goal = 0 - right
+  endif
+  done = 0
+
+  dloop:
+    if (done & 1) = 0 then       ' if we're not done with the left wheel,
+      if left_goal = 0 then         ' check for range
+          SERVO1us 1500 ' stop this one
+          done = done | 1
+          'print "ld"
+        endif
+    endif
+
+    if (done & 2) = 0 then    ' ditto for the right wheel
+      if right_goal = 0 then
+        SERVO2us 1500 ' stop this one
+        done = done | 2
+        'print "rd"
+      endif
+    endif
+    if done = 3 then          ' we're done with both
+      goto endloop
+    endif
+  goto dloop 
+  endloop:
+  'print "done"
+endfunc    
+
+func print_location()
+  IRQGLOBALstop()               ' the dios serial printing seems to mess up if interrupts are happening
+  print "L = ", left_pos, " R = ", right_pos
+  print "rcha = ", rcha, " rchb = ", rchb, " lcha = ", lcha, " lchb = ", lchb
+  print "backward"
+  IRQGLOBALstart()
+endfunc
+
+
+'--------------------------
+' Handle Left Enc
+'
+' do the math for either
+' channel
+'--------------------------
+func handle_left_enc()
+  if ioport(3) = 0 then
+    left_pos = left_pos + 1
+  else
+    left_pos = left_pos - 1
+  endif
+  if left_goal <> 0 then  ' count down our goal distance
+    left_goal = left_goal - 1
+  endif
+endfunc
+
+'--------------------------
+' Left CHA interrupt
+'--------------------------
+irqfunc A_left_ww01_clk
+  handle_left_enc
+  lcha = lcha + 1  ' count occurances of lcha
+  exitirq INT0
+endirq
+
+'--------------------------
+' Left CHB interrupt
+'--------------------------
+irqfunc B_left_ww01_clk
+  handle_left_enc
+  lchb = lchb + 1
+  exitirq INT2
+endirq
+
+
+
+'--------------------------
+' Handle Right Enc
+'
+' do the math for either
+' channel
+'--------------------------
+func handle_right_enc()
+  if ioport(2) = 1 then
+    right_pos = right_pos + 1
+  else
+    right_pos = right_pos - 1
+  endif
+  if right_goal <> 0 then
+    right_goal = right_goal - 1
+  endif
+endfunc
+
+'--------------------------
+' Right CHA interrupt
+'--------------------------
+irqfunc A_right_ww01_clk
+  handle_right_enc
+  rcha = rcha + 1
+  exitirq INT1
+endirq
+
+'--------------------------
+' Right CHB interrupt
+'--------------------------
+irqfunc B_right_ww01_clk
+  TMR3L = $FFFF ' set to max count, so first tick causes an interrupt
+  handle_right_enc
+  rchb = rchb + 1
+  exitirq TMR3
+endirq
+
+
+include \lib\DiosHSSERVO.lib
+include \lib\DiosIRQ.lib
+
+
