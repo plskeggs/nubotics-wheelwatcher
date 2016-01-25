@@ -3,8 +3,11 @@ Welcome to the open hardware and firmware repository for the Nubotics WheelWatch
 models WW-11 (for standard size servos) and WW-12 (for specific gearhead motors).
 
 We started designing and manufacturing the original WheelWatcher encoders in 2004.
-Much has changed in the hobby robotics field in the last 12 years.  Rather than
-letting these designs disappear into the ether, we are opening them up so that
+Much has changed in the hobby robotics field in the last 12 years.  We ceased
+manufacturing both products, and closed our web store after selling the last
+WheelWatchers, in late 2015.
+
+Rather than letting these designs disappear into the ether, we are opening them up so that
 others may carry the torch and either build them for themselves or manufacturer
 and sell them to others.  We only ask that you read, understand, and respect
 the licenses we have applied.
